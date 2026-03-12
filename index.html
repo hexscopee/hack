@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Vulnerable Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            color: #0d47a1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2196f3;
+        }
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .info-box ul {
+            margin-left: 20px;
+            font-size: 13px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #fcc;
+        }
+        .test-section {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .test-section h3 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .badge {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Node.js Login</h1>
+        <div class="subtitle">Intentionally Vulnerable - Testing Purpose</div>
+        
+        <div class="info-box">
+            <strong>📋 Test Credentials:</strong>
+            <ul>
+                <li><b>admin</b> / <b>admin123</b> <span class="badge">Normal</span></li>
+                <li><b>user</b> / <b>password</b> <span class="badge">Normal</span></li>
+                <li><b>toolsbug</b> / <b>toolsbug@123</b> <span class="badge">Normal</span></li>
+            </ul>
+        </div>
+        
+        <?php
+        // PHP code nahi chlega Node.js mein, isliye hum JavaScript use karenge
+        // Ye sirf demonstration ke liye hai
+        ?>
+        
+        <div id="errorMsg" class="error" style="display: none;"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
+            </div>
+            
+            <button type="submit">Login</button>
+        </form>
+        
+        <div class="test-section">
+            <h3>🎯 Testing Tips:</h3>
+            <strong>SQL Injection:</strong> Password field mein ye likhein: <code>' OR '1'='1</code><br>
+            <strong>NoSQL (JSON):</strong> Burp Suite se request capture karein aur body mein ye bhejein:<br>
+            <code>{"username":"admin","password":{"$ne":""}}</code><br>
+            <strong>Boolean Bypass:</strong> <code>{"username":"admin","password":true}</code>
+        </div>
+    </div>
+    
+    <script>
+        // URL parameters se error show karein
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        const msg = urlParams.get('msg');
+        
+        if (error) {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').textContent = '❌ ' + decodeURIComponent(error);
+        } else if (msg) {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').style.background = '#d4edda';
+            document.getElementById('errorMsg').style.color = '#155724';
+            document.getElementById('errorMsg').style.border = '1px solid #c3e6cb';
+            document.getElementById('errorMsg').textContent = '✅ ' + decodeURIComponent(msg);
+        }
+        
+        // Form submit handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Check karein ke JSON request hai ya normal
+            const isJSON = confirm('JSON format mein bhejna chahenge?\nOK = JSON, Cancel = Normal Form');
+            
+            if (isJSON) {
+                // JSON request
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert('Login failed: ' + data.detail);
+                    }
+                }
+            } else {
+                // Normal form submit
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/login';
+                
+                const userInput = document.createElement('input');
+                userInput.type = 'hidden';
+                userInput.name = 'username';
+                userInput.value = username;
+                
+                const passInput = document.createElement('input');
+                passInput.type = 'hidden';
+                passInput.name = 'password';
+                passInput.value = password;
+                
+                form.appendChild(userInput);
+                form.appendChild(passInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    </script>
+</body>
+</html>
